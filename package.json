@@ -48,13 +48,15 @@
     "coverAndPublish": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "dist": "./etc/scripts/dist",
     "perf": "./etc/scripts/perf etc/schemas/*",
-    "test": "mocha --ui tdd --reporter dot"
+    "test": "mocha --ui tdd --reporter dot",
+    "mytest": "mocha --ui tdd --reporter dot -g createFileDecoder"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
     "coveralls": "^3.0.9",
     "mocha": "^8.1.1",
     "nyc": "~15.0.0",
+    "snappy": "^7.2.2",
     "tmp": "^0.1.0"
   },
   "author": {

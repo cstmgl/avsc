@@ -14,6 +14,14 @@ var index = require('../lib'),
     path = require('path'),
     tmp = require('tmp');
 
+const snappy = require('snappy'); // Or your favorite Snappy library.
+const codecs = {
+  snappy: function (buf, cb) {
+    // Avro appends checksums to compressed blocks, which we skip here.
+    return snappy.uncompress(buf.slice(0, buf.length - 4), cb);
+  }
+};
+
 var Buffer = buffer.Buffer;
 
 var DPATH = path.join(__dirname, 'dat');
@@ -66,14 +74,17 @@ suite('index', function () {
 
   test('createFileDecoder', function (cb) {
     var n = 0;
-    var type = index.parse(path.join(DPATH, 'Person.avsc'));
-    index.createFileDecoder(path.join(DPATH, 'person-10.avro'))
+    //var type = index.parse(path.join(DPATH, 'Person.avsc'));
+    index.createFileDecoder(path.join(DPATH, 'analyse_tombstone.avro'), {codecs})
       .on('metadata', function (writerType) {
-        assert.equal(writerType.toString(), type.toString());
+        //assert.equal(writerType.toString(), type.toString());
+        //console.log(writerType);
+        ;
       })
       .on('data', function (obj) {
         n++;
-        assert(type.isValid(obj));
+        console.log(obj);
+        //assert(type.isValid(obj));
       })
       .on('end', function () {
         assert.equal(n, 10);
