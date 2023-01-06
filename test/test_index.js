@@ -12,12 +12,14 @@ var index = require('../lib'),
     assert = require('assert'),
     buffer = require('buffer'),
     path = require('path'),
-    tmp = require('tmp');
+    tmp = require('tmp'),
+    fs = require('fs');
 
 const snappy = require('snappy'); // Or your favorite Snappy library.
 const { doesNotMatch } = require('assert');
 const codecs = {
   snappy: function (buf, cb) {
+    console.log('uncompress original value is', buf);
     // Avro appends checksums to compressed blocks, which we skip here.
     return snappy.uncompress(buf.slice(0, buf.length - 4), cb);
   }
@@ -76,7 +78,10 @@ suite('index', function () {
   test('createFileDecoder', function (cb) {
     var n = 0;
     //var type = index.parse(path.join(DPATH, 'Person.avsc'));
-    index.createFileDecoder(path.join(DPATH, 'analyse_tombstone.avro'), {codecs})
+
+    //fs.createReadStream(path.join(DPATH, 'analyse_tombstone.avro'));
+
+    var fileDec = index.createFileDecoder(path.join(DPATH, 'analyse_tombstone.avro'), {codecs})
       .on('metadata', function (writerType) {
         //assert.equal(writerType.toString(), type.toString());
         //console.log(writerType);
@@ -98,6 +103,10 @@ suite('index', function () {
         //assert.equal(n, 10);
         cb();
       });
+     
+    console.log(fileDec.eventNames());
+    fileDec.end();
+
   });
 
   test('createFileEncoder', function (cb) {
