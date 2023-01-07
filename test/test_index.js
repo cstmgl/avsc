@@ -19,16 +19,19 @@ const snappy = require('snappy'); // Or your favorite Snappy library.
 const { doesNotMatch } = require('assert');
 const codecs = {
   snappy: function (buf, cb) {
-    console.log('uncompress original value is', buf);
+    console.log('original value ', buf);
+    console.log('original value length', buf.length);
     // Avro appends checksums to compressed blocks, which we skip here.
-    return snappy.uncompress(buf.slice(0, buf.length - 4), cb);
+    const buffer = snappy.uncompressSync(buf.slice(0, buf.length - 4));
+    console.log('uncompress value ', buffer);
+    console.log('uncompress value length', buffer.length);
+    return buffer;
   }
 };
 
 var Buffer = buffer.Buffer;
 
 var DPATH = path.join(__dirname, 'dat');
-
 
 suite('index', function () {
 
@@ -77,21 +80,15 @@ suite('index', function () {
 
   test('createFileDecoder', function (cb) {
     var n = 0;
-    //var type = index.parse(path.join(DPATH, 'Person.avsc'));
-
-    //fs.createReadStream(path.join(DPATH, 'analyse_tombstone.avro'));
-
     var fileDec = index.createFileDecoder(path.join(DPATH, 'analyse_tombstone.avro'), {codecs})
-      .on('metadata', function (writerType) {
-        //assert.equal(writerType.toString(), type.toString());
-        //console.log(writerType);
+      .on('metadata', function (type) {
         console.log('metadata');
+        console.log(type.name);
       })
       .on('data', function (obj) {
         console.log('data');
         n++;
         console.log(obj);
-        //assert(type.isValid(obj));
       })
       .on('error', err => {
         console.log('err');
@@ -102,10 +99,18 @@ suite('index', function () {
         console.log('end');
         //assert.equal(n, 10);
         cb();
+      }).on('close', function() {
+        console.log('close');
+      }).on('unpipe', function() {
+        console.log('unpipe');
+      }).on('finish', function() {
+        console.log('finish');
       });
      
     console.log(fileDec.eventNames());
-    fileDec.end();
+    console.log(fileDec.once('data', (stream) => {
+      console.log('DATA???');
+    }));
 
   });
 

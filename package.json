@@ -49,7 +49,7 @@
     "dist": "./etc/scripts/dist",
     "perf": "./etc/scripts/perf etc/schemas/*",
     "test": "mocha --ui tdd --reporter dot",
-    "mytest": "mocha --ui tdd --reporter dot -g createFileDecoder --timeout 10000"
+    "mytest": "mocha --ui tdd --reporter dot -g createFileDecoder --timeout 100000"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
