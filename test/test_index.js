@@ -12,26 +12,12 @@ var index = require('../lib'),
     assert = require('assert'),
     buffer = require('buffer'),
     path = require('path'),
-    tmp = require('tmp'),
-    fs = require('fs');
-
-const snappy = require('snappy');
-const { doesNotMatch } = require('assert');
-const codecs = {
-  snappy: function (buf, cb) {
-    console.log('original value ', buf);
-    console.log('original value length', buf.length);
-    // Avro appends checksums to compressed blocks, which we skip here.
-    const buffer = snappy.uncompressSync(buf.slice(0, buf.length - 4));
-    console.log('uncompress value ', buffer);
-    console.log('uncompress value length', buffer.length);
-    return buffer;
-  }
-};
+    tmp = require('tmp');
 
 var Buffer = buffer.Buffer;
 
 var DPATH = path.join(__dirname, 'dat');
+
 
 suite('index', function () {
 
@@ -80,36 +66,49 @@ suite('index', function () {
 
   test('createFileDecoder', function (cb) {
     var n = 0;
-    var fileDec = index.createFileDecoder(path.join(DPATH, 'analyse_tombstone.avro'), {codecs})
-      .on('metadata', function (type) {
-        console.log('metadata');
-        console.log(type.name);
+    var type = index.parse(path.join(DPATH, 'Person.avsc'));
+    index.createFileDecoder(path.join(DPATH, 'person-10.avro'))
+      .on('metadata', function (writerType) {
+        assert.equal(writerType.toString(), type.toString());
       })
       .on('data', function (obj) {
-        console.log('data');
         n++;
-        console.log(obj);
-      })
-      .on('error', err => {
-        console.log('err');
-        console.log(err);
-        assert(false);
+        assert(type.isValid(obj));
       })
       .on('end', function () {
-        console.log('end');
-        //assert.equal(n, 10);
+        assert.equal(n, 10);
         cb();
-      }).on('close', function() {
-        console.log('close');
-      }).on('unpipe', function() {
-        console.log('unpipe');
-      }).on('finish', function() {
-        console.log('finish');
       });
-     
-    console.log(fileDec.eventNames());
-    fileDec.emit('data', {a:"a"});
+  });
 
+  test('createFileDecoderSnappy', function (cb) {
+    const snappy = require('snappy');
+    const codecs = {
+      snappy: function (buf, cb) {
+        // Avro appends checksums to compressed blocks, which we skip here.
+        const buffer = snappy.uncompressSync(buf.slice(0, buf.length - 4));
+        cb(buffer);
+        console.log('uncompress value ', buffer);
+        console.log('uncompress value length', buffer.length);
+        return buffer;
+      }
+    };
+
+    var n = 0;
+    index.createFileDecoder(path.join(DPATH, 'person-10.snappy.avro'), {codecs})
+      .on('metadata', function (writerType) {
+        console.log(writerType);
+        assert.equal(writerType.name, 'playground.Person');
+      })
+      .on('data', function (obj) {
+        console.log('on data ');
+        console.log('obj');
+        n++;
+      })
+      .on('end', function () {
+        assert.equal(n, 10);
+        cb();
+      });
   });
 
   test('createFileEncoder', function (cb) {
