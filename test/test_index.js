@@ -15,7 +15,7 @@ var index = require('../lib'),
     tmp = require('tmp'),
     fs = require('fs');
 
-const snappy = require('snappy'); // Or your favorite Snappy library.
+const snappy = require('snappy');
 const { doesNotMatch } = require('assert');
 const codecs = {
   snappy: function (buf, cb) {
@@ -108,9 +108,7 @@ suite('index', function () {
       });
      
     console.log(fileDec.eventNames());
-    console.log(fileDec.once('data', (stream) => {
-      console.log('DATA???');
-    }));
+    fileDec.emit('data', {a:"a"});
 
   });
 
