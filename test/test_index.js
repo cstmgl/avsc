@@ -18,7 +18,6 @@ var Buffer = buffer.Buffer;
 
 var DPATH = path.join(__dirname, 'dat');
 
-
 suite('index', function () {
 
   suite('parse', function () {
@@ -95,10 +94,10 @@ suite('index', function () {
     };
 
     var n = 0;
+    var type = index.parse(path.join(DPATH, 'Person.avsc'));
     index.createFileDecoder(path.join(DPATH, 'person-10.snappy.avro'), {codecs})
       .on('metadata', function (writerType) {
-        console.log(writerType);
-        assert.equal(writerType.name, 'playground.Person');
+        assert.equal(writerType.toString(), type.toString());
       })
       .on('data', function (obj) {
         console.log('on data ');
