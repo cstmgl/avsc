@@ -80,6 +80,32 @@ suite('index', function () {
       });
   });
 
+  test('createFileDecoderDeflate', function (cb) {
+    const zlib = require('zlib');
+    const codecs = {
+      deflate: function (buf, cb) {
+        return zlib.deflate(buf, cb);
+      }
+    };
+
+    var n = 0;
+    var type = index.parse(path.join(DPATH, 'Person.avsc'));
+    index.createFileDecoder(path.join(DPATH, 'person-10.deflate.avro'), {codecs})
+      .on('metadata', function (writerType) {
+        assert.equal(writerType.toString(), type.toString());
+      })
+      .on('data', function (obj) {
+        console.log('on data ');
+        console.log('obj');
+        n++;
+        assert(type.isValid(obj));
+      })
+      .on('end', function () {
+        assert.equal(n, 10);
+        cb();
+      });
+  });
+
   test('createFileDecoderSnappy', function (cb) {
     const snappy = require('snappy');
     const codecs = {
