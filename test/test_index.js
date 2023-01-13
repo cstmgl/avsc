@@ -86,10 +86,10 @@ suite('index', function () {
       snappy: function (buf, cb) {
         // Avro appends checksums to compressed blocks, which we skip here.
         const buffer = snappy.uncompressSync(buf.slice(0, buf.length - 4));
-        cb(buffer);
+        //cb(buffer);
         console.log('uncompress value ', buffer);
         console.log('uncompress value length', buffer.length);
-        return buffer;
+        return cb(buffer);
       }
     };
 
