@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
+    "buffer-crc32": "^0.2.13",
     "coveralls": "^3.0.9",
     "mocha": "^8.1.1",
     "nyc": "~15.0.0",

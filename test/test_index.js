@@ -92,6 +92,7 @@ suite('index', function () {
     var type = index.parse(path.join(DPATH, 'Person.avsc'));
     index.createFileDecoder(path.join(DPATH, 'person-10.deflate.avro'), {codecs})
       .on('metadata', function (writerType) {
+        console.log(writerType.name);
         assert.equal(writerType.toString(), type.toString());
       })
       .on('data', function (obj) {
@@ -107,15 +108,25 @@ suite('index', function () {
   });
 
   test('createFileDecoderSnappy', function (cb) {
+    const crc32 = require('buffer-crc32');
     const snappy = require('snappy');
     const codecs = {
       snappy: function (buf, cb) {
         // Avro appends checksums to compressed blocks, which we skip here.
-        const buffer = snappy.uncompressSync(buf.slice(0, buf.length - 4));
+        const len = buf.length;
+        const checksum = buf.slice(len - 4, len);
         //cb(buffer);
         console.log('uncompress value ', buffer);
         console.log('uncompress value length', buffer.length);
-        return cb(buffer);
+        snappy.uncompress(buf.slice(0, len - 4))
+        .then((inflated) => {
+          if (!checksum.equals(crc32(inflated))) {
+            // We make sure that the checksum matches.
+            throw new Error('invalid checksum');
+          }
+          cb(null, inflated);
+        })
+        .catch(cb);
       }
     };
 
@@ -123,11 +134,12 @@ suite('index', function () {
     var type = index.parse(path.join(DPATH, 'Person.avsc'));
     index.createFileDecoder(path.join(DPATH, 'person-10.snappy.avro'), {codecs})
       .on('metadata', function (writerType) {
+        console.log(writerType.name);
         assert.equal(writerType.toString(), type.toString());
       })
       .on('data', function (obj) {
         console.log('on data ');
-        console.log('obj');
+        console.log(obj);
         n++;
       })
       .on('end', function () {
