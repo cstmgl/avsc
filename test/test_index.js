@@ -84,7 +84,9 @@ suite('index', function () {
     const zlib = require('zlib');
     const codecs = {
       deflate: function (buf, cb) {
-        return zlib.deflate(buf, cb);
+        // Avro appends checksums to compressed blocks.
+        const len = buf.length;
+        return zlib.deflate(buf.slice(0, len - 4), cb);
       }
     };
 
